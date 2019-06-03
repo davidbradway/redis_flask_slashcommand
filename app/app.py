@@ -1,6 +1,6 @@
 #!/usr/local/bin/python3
 import os
-from flask import Flask
+from flask import Flask, request
 from redis import Redis
 
 app = Flask(__name__)
@@ -57,6 +57,11 @@ def remember_local(command=None):
                 return set(name,value)
         else: # pass to get
             return get(command)
+
+
+@app.route('/remember', methods=['POST'])
+def remember():
+    return 'route hit by user_id: ' + request.form['user_id'] + ', text: ' + request.form['text']
 
 
 if __name__ == "__main__":
