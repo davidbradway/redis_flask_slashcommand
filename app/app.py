@@ -41,9 +41,9 @@ def get(name=None):
             return f'{name}={set_val.decode()}'
 
 
-@app.route('/remember', strict_slashes=False)
-@app.route('/remember/<command>', strict_slashes=False)
-def remember(command=None):
+@app.route('/remember_local', strict_slashes=False)
+@app.route('/remember_local/<command>', strict_slashes=False)
+def remember_local(command=None):
     if command is None: # return all keys
         return get(None)
     else:
