@@ -3,7 +3,7 @@
 ```bash
 docker-compose build
 docker-compose up -d
-docker exec -it redis_redis_1 redis-cli
+docker exec -it redisflaskslashcommand_redis_1 redis-cli
 ```
 
 ```
@@ -18,8 +18,8 @@ exit
 
 ```bash
 docker-compose down
-docker container rm redis_redis_1
-docker container rm redis_app_1
+docker container rm redisflaskslashcommand_redis_1
+docker container rm redisflaskslashcommand_app_1
 
 docker image ls
 docker image rm redis:3.2-alpine
