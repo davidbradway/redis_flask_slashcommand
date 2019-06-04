@@ -4,64 +4,67 @@ from flask import Flask, request
 from redis import Redis
 
 app = Flask(__name__)
-r = Redis(host=os.environ['REDIS_HOST'], port=os.environ['REDIS_PORT'])
+r = Redis(host=os.environ['REDIS_HOST'], port=os.environ['REDIS_PORT'], decode_responses=True)
 bind_port = int(os.environ['BIND_PORT'])
 
 
-@app.route('/set/<name>', strict_slashes=False)
-@app.route('/set/<name>/<value>', strict_slashes=False)
+def splitkey(userkey):
+    mylist = userkey.split('~', 1)
+    user_id, key = mylist[0], mylist[1]
+    return (user_id, key)
+
+
 def set(name=None, value=None):
     if name is None:
-        return 'Error, need a name'
-    elif value is None: # delete the key, value pair
+        return 'Error, need a key'
+    elif value is None: # delete the key,value pair
         r.delete(name)
-        return f'{name} deleted.'
-    else: # set (or overwrite) the key, value pair
+        user_id, key = splitkey(name)
+        return f'{key} deleted.'
+    else: # set (or overwrite) the key,value pair
         r.set(name, value)
         set_val = r.get(name)
         if set_val is None:
             return 'Error, value not set properly.'
         else:
-            return f'{name} set to {set_val.decode()}'
+            user_id, key = splitkey(name)
+            return f'"{key}" set to "{set_val}"'
 
 
-@app.route('/get', strict_slashes=False)
-@app.route('/get/<name>', strict_slashes=False)
 def get(name=None):
-    if name is None: # return a list of all keys
-        keylist = list()
-        for key in r.scan_iter():
-            keylist.append(key.decode())
-        return 'All keys: ' + ', '.join(keylist)
-    else: # return one key, value pair
-        set_val = r.get(name)
-        if set_val is None:
-            return f'{name} did not exist'
+    if name is None:
+        return 'Error, no key entered'
+    else: 
+        # return all key,value pairs that start with given string
+        mystr = ''
+        for userkey in r.scan_iter(name+'*'):
+            user_id, key = splitkey(userkey)
+            mystr += key + '=' + r.get(userkey) + ', '
+        if mystr is '':
+            return f'no keys start with given string'
         else:
-            return f'{name}={set_val.decode()}'
+            return mystr
 
 
-@app.route('/remember_local', strict_slashes=False)
-@app.route('/remember_local/<command>', strict_slashes=False)
-def remember_local(command=None):
-    if command is None: # return all keys
-        return get(None)
+def handle(command):
+    if 'help' in command:
+        return 'HELP. Usage (set, get, del): \n /remember key=value \n /remember key \n /remember key='
     else:
         if '=' in command: # pass to set
             mylist = command.split('=')
             name, value = mylist[0].strip(), mylist[1].strip()
             if value is '':
-                # delete
-                return set(name)
+                return set(name) # delete
             else:
-                return set(name,value)
+                return set(name,value) # set
         else: # pass to get
             return get(command)
 
 
 @app.route('/remember', methods=['POST'])
 def remember():
-    return 'route hit by user_id: ' + request.form['user_id'] + ', text: ' + request.form['text']
+    # concatenate "[user_id]~" to text entered
+    return handle(request.form['user_id'] + '~' + request.form['text'])
 
 
 if __name__ == "__main__":
