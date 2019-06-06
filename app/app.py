@@ -5,6 +5,7 @@ import hashlib
 import hmac
 from flask import Flask, request
 from redis import Redis
+from slackeventsapi import SlackEventAdapter
 
 # This `app` represents your existing Flask app
 app = Flask(__name__)
