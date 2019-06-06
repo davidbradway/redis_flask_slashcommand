@@ -29,7 +29,7 @@ def validate_slack_signature(func):
         # Retrieve the X-Slack-Request-Timestamp header on the HTTP request
         timestamp = request.headers.get("X-Slack-Request-Timestamp")
 
-        if absolute_value(datetime.datetime.now() - timestamp) > 60 * 5: 
+        if abs(datetime.datetime.now() - timestamp) > 60 * 5: 
             # The request timestamp is more than five minutes from local time.
             # It could be a replay attack, so let's ignore it.
             return "", http.HTTPStatus.NO_CONTENT
