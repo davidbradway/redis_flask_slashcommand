@@ -3,6 +3,7 @@ services:
   app:
     build:
       context: ./app
+    restart: always
     depends_on:
       - redis
     environment:
@@ -11,6 +12,7 @@ services:
       - "5000:5000"
   redis:
     image: redis:3.2-alpine
+    restart: always
     volumes:
       - redis_data:/data
 volumes:
