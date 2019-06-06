@@ -3,18 +3,21 @@ import os
 from flask import Flask, request
 from redis import Redis
 
+# This `app` represents your existing Flask app
 app = Flask(__name__)
 r = Redis(host=os.environ['REDIS_HOST'], port=os.environ['REDIS_PORT'], decode_responses=True)
 bind_port = int(os.environ['BIND_PORT'])
 
 
 def splitkey(userkey):
+    """Splits a 'userkey' string at the first '~' character and returns that pair of strings"""
     mylist = userkey.split('~', 1)
     user_id, key = mylist[0], mylist[1]
     return (user_id, key)
 
 
 def set(name=None, value=None):
+    """Given a key name, set or delete that key in the redis datastore"""
     if name is None:
         return 'Error, need a key'
     elif value is None: # delete the key,value pair
@@ -32,6 +35,7 @@ def set(name=None, value=None):
 
 
 def get(name=None):
+    """Given a key name, get that key's value from the redis datastore"""
     if name is None:
         return 'Error, no key entered'
     else: 
@@ -47,6 +51,7 @@ def get(name=None):
 
 
 def handle(command):
+    """Handle a command that has been passed from the Flask route. Either help, set, get, or delete."""
     if 'help' in command:
         return 'HELP. Usage (set, get, del): \n /remember key=value \n /remember key \n /remember key='
     else:
@@ -63,7 +68,7 @@ def handle(command):
 
 @app.route('/remember', methods=['POST'])
 def remember():
-    # concatenate "[user_id]~" to text entered
+    """Flask route for remmeber slash command. Prepend user_id~ to text entered and pass on to handler"""
     return handle(request.form['user_id'] + '~' + request.form['text'])
 
 
